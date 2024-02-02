@@ -6,8 +6,8 @@ import seaborn as sns
 
 #Main part, to be used in the other script as well
 symbol = input('Choose stock:')
-api_key = '1N6YRB5DJEH8E7HP'
-endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={api_key}"
+api_key = '4H4XGZE8HAY85MW6'
+endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
 
 response = requests.get(endpoint)
 
@@ -20,13 +20,11 @@ raw_data = response.json()
 
 # The other key/value pair is the actual time series.
 # This is a dict as well
-time_series = raw_data['Time Series (5min)']
+time_series = raw_data['Time Series (1min)']
 
 #Creating data frame
-data = raw_data['Time Series (5min)']
+data = raw_data['Time Series (1min)']
 df = pd.DataFrame(data).T.apply(pd.to_numeric)
-df.info()
-df.head()
 
 # Next we parse the index to create a datetimeindex
 df.index = pd.DatetimeIndex(df.index)
@@ -56,8 +54,8 @@ dates = close_per_day.index
 
 if __name__ == '__main__':
 
-    api_key = '1N6YRB5DJEH8E7HP'
-    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={api_key}"
+    api_key = '4H4XGZE8HAY85MW6'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
 
     response = requests.get(endpoint)
 

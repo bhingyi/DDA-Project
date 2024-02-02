@@ -11,7 +11,7 @@ class UserProfile:
         self.username = username
         self.password = password
         self.cash_balance = initial_cash
-        self.portfolio = {} #we should set the dict kys in a fixed order or our stocks
+        self.portfolio = {'MSFT': 0, 'AAPL': 0, 'GOOGL':0}#{} #we should set the dict kys in a fixed order or our stocks
         self.dataframe = pd.DataFrame()
 
     def deposit_cash(self, amount):
@@ -57,6 +57,26 @@ class UserProfile:
             total_worth = quantity * stock_price
             summary.append(f"{symbol}: Quantity - {quantity}, Stock Price - ${stock_price}, Total Worth - ${total_worth}")
         return summary
+
+    def visual_summary(self):
+        prices = [MSFT_price(), AAPL_price(), GOOGL_price()]
+        self.dataframe = pd.DataFrame.from_dict(self.portfolio, orient='index', columns=['Number of stocks'])
+        self.dataframe['Value'] = prices * self.dataframe['Number of stocks']
+
+        ax = sns.barplot(x=self.dataframe.index, y='Value', data=self.dataframe, palette=['b', 'g', 'r', 'c'])
+        ax.set_xlabel('Stocks', weight='bold', fontsize=14)
+        ax.set_ylabel('Value', weight='bold', fontsize=14)
+        for p in ax.patches:
+            ax.text(x=p.get_x() + p.get_width() / 2,
+                    y=p.get_height(),
+                    s='${:.2f}'.format(p.get_height()),
+                    ha='center',
+                    weight='bold',
+                    fontsize=14)
+        ax.set_title(f'Value of portfolio at {last_time_stamp('MSFT',api_key)}', weight='bold', fontsize=18)
+        # Show the plot
+        plt.show()
+
 
     def view_portfolio(self):
         summary = self.portfolio_summary()
@@ -182,6 +202,31 @@ def MSFT_price():
     price_MSFT = data['close'].iloc[-1]
 
     return price_MSFT
+
+def last_time_stamp(symbol, api_key):
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    # Since we are retrieving stuff from a web service, it's a good idea to check for the return status code
+    if response.status_code != 200:
+        raise ValueError("Could not retrieve data, code:", response.status_code)
+
+    # The service sends JSON data, we parse that into a Python datastructure
+    raw_data = response.json()
+
+    # Creating data frame
+    data = raw_data['Time Series (1min)']
+    df_data = pd.DataFrame(data).T.apply(pd.to_numeric)
+
+    # Next we parse the index to create a datetimeindex
+    df_data.index = pd.DatetimeIndex(df.index)
+
+    # Let's fix the column names by chopping off the first 3 characters
+    df_data.rename(columns=lambda s: s[3:], inplace=True)
+    last_time_stamp = df_data.index[0]
+
+    return last_time_stamp
 
 
 def log_in():

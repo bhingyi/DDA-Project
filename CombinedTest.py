@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+#Defining API key as global variable
+api_key = '4H4XGZE8HAY85MW6'
+
 class UserProfile:
     def __init__(self, username, password, initial_cash):
         self.username = username
@@ -58,8 +61,8 @@ class UserProfile:
         if symbol not in available_stocks:
             return f"Invalid stock symbol.", None
 
-        api_key = ''
-        endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={api_key}"
+
+        endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
 
         response = requests.get(endpoint)
 
@@ -67,7 +70,7 @@ class UserProfile:
             return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
 
         raw_data = response.json()
-        time_series = raw_data.get('Time Series (5min)')
+        time_series = raw_data.get('Time Series (1min)')
 
         if not time_series:
             return f"No time series data found for {symbol}", None
@@ -87,6 +90,81 @@ class UserProfile:
         latest_stock_price = data['close'].iloc[-1]
 
         return None, latest_stock_price
+
+
+# Functions to get the latest stock prices for the available stocks (defiend by us): currently Apple, Google and Microsoft
+def AAPL_price():
+    symbol = 'AAPL'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    if response.status_code != 200:
+        return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+
+    raw_data = response.json()
+    time_series = raw_data.get('Time Series (1min)')
+
+    if not time_series:
+        return f"No time series data found for {symbol}", None
+
+    data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+    data.index = pd.DatetimeIndex(data.index)
+    data.rename(columns=lambda s: s[3:], inplace=True)
+
+    # Extract the latest stock price
+    price_AAPL = data['close'].iloc[-1]
+
+    return price_AAPL
+
+def GOOGL_price():
+    symbol = 'GOOGL'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    if response.status_code != 200:
+        return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+
+    raw_data = response.json()
+    time_series = raw_data.get('Time Series (1min)')
+
+    if not time_series:
+        return f"No time series data found for {symbol}", None
+
+    data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+    data.index = pd.DatetimeIndex(data.index)
+    data.rename(columns=lambda s: s[3:], inplace=True)
+
+    # Extract the latest stock price
+    price_GOOGL = data['close'].iloc[-1]
+
+    return price_GOOGL
+
+def MSFT_price():
+    symbol = 'MSFT'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    if response.status_code != 200:
+        return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+
+    raw_data = response.json()
+    time_series = raw_data.get('Time Series (1min)')
+
+    if not time_series:
+        return f"No time series data found for {symbol}", None
+
+    data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+    data.index = pd.DatetimeIndex(data.index)
+    data.rename(columns=lambda s: s[3:], inplace=True)
+
+    # Extract the latest stock price
+    price_MSFT = data['close'].iloc[-1]
+
+    return price_MSFT
+
 
 def log_in():
     users = {'Balazs': UserProfile(username='Balazs', password='Welcome123', initial_cash=10000),
@@ -171,7 +249,7 @@ def main():
     user = log_in()
 
     if user:
-        available_stocks = {'AAPL': 150.50, 'GOOGL': 1200.75, 'MSFT': 300.20}
+        available_stocks = {'AAPL': AAPL_price(), 'GOOGL': GOOGL_price(), 'MSFT': MSFT_price()}
 
         while True:
             print("\nOptions:")

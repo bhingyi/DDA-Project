@@ -5,8 +5,11 @@ import seaborn as sns
 
 
 #Main part, to be used in the other script as well
+symbol = input('Choose stock:')
+api_key = '1N6YRB5DJEH8E7HP'
+endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={api_key}"
 
-response = requests.get("https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=MSFT&interval=5min&outputsize=full&apikey=demo")
+response = requests.get(endpoint)
 
 # Since we are retrieving stuff from a web service, it's a good idea to check for the return status code
 if response.status_code != 200:
@@ -53,7 +56,10 @@ dates = close_per_day.index
 
 if __name__ == '__main__':
 
-    response = requests.get("https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=MSFT&interval=5min&outputsize=full&apikey=demo")
+    api_key = '1N6YRB5DJEH8E7HP'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
 
     # Since we are retrieving stuff from a web service, it's a good idea to check for the return status code
     # See: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
@@ -72,6 +78,7 @@ if __name__ == '__main__':
     # Let's look at the first key/value.
     # This is just some descriptive information
     raw_data['Meta Data']
+    #Microsoft stocks
 
     # The other key/value pair is the actual time series.
     # This is a dict as well

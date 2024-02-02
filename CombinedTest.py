@@ -54,23 +54,44 @@ class UserProfile:
             summary.append(f"{symbol}: Quantity - {quantity}, Stock Price - ${stock_price}, Total Worth - ${total_worth}")
         return summary
 
-    def view_stock_data(self, symbol, available_stocks):
-        if symbol not in available_stocks:
-            return f"Invalid stock symbol.", None
+    def view_portfolio(self):
+        summary = self.portfolio_summary()
+        if summary:
+            print("\nPortfolio Summary:")
+            for item in summary:
+                print(item)
+        else:
+            print("No stocks in the portfolio.")
 
-        api_key = ''
-        endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={api_key}"
+    def view_stock_data(self, available_stocks):
+        print("\nAvailable stocks with prices:")
+        for stock, price in available_stocks.items():
+            print(f"- {stock}: ${price}")
+
+        stock_symbol = input("Enter the stock symbol you want to view data (type 'NVM' to go back): ")
+
+        if stock_symbol.upper() == 'NVM':
+            return None, None, None
+
+        if stock_symbol not in available_stocks:
+            print("Invalid stock symbol.")
+            return None, None, None
+
+        api_key = 'YOUR_ALPHA_VANTAGE_API_KEY'
+        endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stock_symbol}&interval=5min&outputsize=full&apikey={api_key}"
 
         response = requests.get(endpoint)
 
         if response.status_code != 200:
-            return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+            print(f"Could not retrieve data for {stock_symbol}, code: {response.status_code}")
+            return None, None, None
 
         raw_data = response.json()
         time_series = raw_data.get('Time Series (5min)')
 
         if not time_series:
-            return f"No time series data found for {symbol}", None
+            print(f"No time series data found for {stock_symbol}")
+            return None, None, None
 
         data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
         data.index = pd.DatetimeIndex(data.index)
@@ -78,15 +99,12 @@ class UserProfile:
 
         plt.figure(figsize=(12, 6))
         sns.lineplot(data=data[['open', 'high', 'low', 'close']])
-        plt.title(f"Stock Data for {symbol}")
+        plt.title(f"Stock Data for {stock_symbol}")
         plt.xlabel('Date')
         plt.ylabel('Price')
         plt.show()
 
-        # Extract the latest stock price
-        latest_stock_price = data['close'].iloc[-1]
-
-        return None, latest_stock_price
+        return stock_symbol, data['close'].iloc[-1], None
 
 def log_in():
     users = {'Balazs': UserProfile(username='Balazs', password='Welcome123', initial_cash=10000),
@@ -148,13 +166,7 @@ def portfolio_menu(user):
     choice = input("Enter your choice (1-3): ")
 
     if choice == '1':
-        portfolio_summary = user.portfolio_summary()
-        if portfolio_summary:
-            print("\nPortfolio Summary:")
-            for item in portfolio_summary:
-                print(item)
-        else:
-            print("No stocks in the portfolio.")
+        user.view_portfolio()
 
     elif choice == '2':
         stock_symbol, stock_price, quantity = sell_stocks_menu(user)
@@ -179,9 +191,10 @@ def main():
             print("2. Withdraw Cash")
             print("3. Portfolio")
             print("4. View Stock Data")
-            print("5. Exit")
+            print("5. Buy Stocks")
+            print("6. Exit")
 
-            choice = input("Enter your choice (1-5): ")
+            choice = input("Enter your choice (1-6): ")
 
             if choice == '1':
                 amount = float(input("Enter the amount to deposit: "))
@@ -195,27 +208,50 @@ def main():
                 portfolio_menu(user)
 
             elif choice == '4':
-                print("\nAvailable stocks:")
-                for stock, price in available_stocks.items():
-                    error_message, latest_stock_price = user.view_stock_data(symbol=stock, available_stocks=available_stocks)
-                    if error_message:
-                        print(f"Error: {error_message}")
-                    else:
-                        print(f"- {stock}: ${latest_stock_price}")
+                stock_symbol, stock_price, _ = user.view_stock_data(available_stocks)
+                if stock_symbol and stock_price:
+                    print(f"Current price of {stock_symbol}: ${stock_price}")
 
-                stock_symbol = input("Enter the stock symbol to view data (type 'NVM' to go back): ")
+            elif choice == '5':
+                print("\nAvailable stocks with prices:")
+                for stock, price in available_stocks.items():
+                    print(f"- {stock}: ${price}")
+
+                stock_symbol = input("Enter the stock symbol you want to buy (type 'NVM' to go back): ")
 
                 if stock_symbol.upper() == 'NVM':
                     continue
 
-                user.view_stock_data(symbol=stock_symbol, available_stocks=available_stocks)
+                if stock_symbol not in available_stocks:
+                    print("Invalid stock symbol.")
+                    continue
 
-            elif choice == '5':
+                quantity = int(input("Enter the quantity you want to buy: "))
+
+                if quantity <= 0:
+                    print("Quantity must be greater than zero.")
+                    continue
+
+                stock_price = available_stocks[stock_symbol]
+                total_amount = quantity * stock_price
+
+                print(f"Total amount for {quantity} shares of {stock_symbol}: ${total_amount}")
+
+                confirmation = input("Do you want to proceed with the purchase? (Y/N): ").upper()
+
+                if confirmation == 'Y':
+                    print(user.buy_stock(symbol=stock_symbol, quantity=quantity, stock_price=stock_price))
+                elif confirmation == 'N':
+                    print("Purchase canceled.")
+                else:
+                    print("Invalid choice. Please enter 'Y' or 'N'.")
+
+            elif choice == '6':
                 print("Exiting the program. Goodbye!")
                 break
 
             else:
-                print("Invalid choice. Please enter a number between 1 and 5.")
+                print("Invalid choice. Please enter a number between 1 and 6.")
 
 if __name__ == "__main__":
     main()

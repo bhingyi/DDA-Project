@@ -11,7 +11,8 @@ class UserProfile:
         self.username = username
         self.password = password
         self.cash_balance = initial_cash
-        self.portfolio = {}
+        self.portfolio = {} #we should set the dict kys in a fixed order or our stocks
+        self.dataframe = pd.DataFrame()
 
     def deposit_cash(self, amount):
         self.cash_balance += amount

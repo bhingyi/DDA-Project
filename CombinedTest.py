@@ -220,7 +220,7 @@ def last_time_stamp(symbol, api_key):
     df_data = pd.DataFrame(data).T.apply(pd.to_numeric)
 
     # Next we parse the index to create a datetimeindex
-    df_data.index = pd.DatetimeIndex(df.index)
+    df_data.index = pd.DatetimeIndex(df_data.index)
 
     # Let's fix the column names by chopping off the first 3 characters
     df_data.rename(columns=lambda s: s[3:], inplace=True)

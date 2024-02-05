@@ -92,7 +92,7 @@ class UserProfile:
                     ha='center',
                     weight='bold',
                     fontsize=14)
-        ax.set_title(f'Value of portfolio at {last_time_stamp('MSFT',api_key)}', weight='bold', fontsize=18)
+        ax.set_title(f'Total value of portfolio: $ {sum(self.dataframe['Value'])}', weight='bold', fontsize=18)
         # Show the plot
         plt.show()
 

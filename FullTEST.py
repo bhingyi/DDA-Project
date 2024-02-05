@@ -68,13 +68,21 @@ class UserProfile:
             self.dataframe[symbol, 'Value'] = total_worth
         return summary
 
+    def portfolio_dict(self):
+        p_dict = {'MSFT': 0, 'AAPL': 0, 'GOOGL':0}
+        for symbol, details in self.portfolio.items():
+            quantity = details['quantity']
+            stock_price = details['stock_price']
+            total_worth = quantity * stock_price
+            p_dict[symbol] = total_worth
+        return p_dict
 
     #Method to generate plot for portfolio overview
     def visual_summary(self):
         prices = [MSFT_price(), AAPL_price(), GOOGL_price()]
-        self.dataframe = self.df_summary()
+        self.dataframe = pd.DataFrame.from_dict(self.portfolio_dict(), orient='index', columns=['Value'])
 
-        ax = sns.barplot(x=self.dataframe.index, y='Value', data=self.dataframe, palette=['b', 'g', 'r', 'c'])
+        ax = sns.barplot(x=self.dataframe.index, y='Value', data=self.dataframe, palette=['b', 'g', 'r'])
         ax.set_xlabel('Stocks', weight='bold', fontsize=14)
         ax.set_ylabel('Value', weight='bold', fontsize=14)
         for p in ax.patches:
@@ -375,7 +383,8 @@ def portfolio_menu(user):
 
         else:
             print("No stocks in the portfolio.")
-        #user.visual_summary()
+        user.visual_summary()
+        #print(user.portfolio_dict())
     elif choice == '2':
         stock_symbol, stock_price, quantity = buy_stocks_menu()
         if stock_symbol and stock_price and quantity:

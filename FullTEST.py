@@ -130,9 +130,30 @@ class UserProfile:
 
         return stock_symbol, data['close'].iloc[-1], None
 
+    def view_stock_overview(self, available_stocks):
+        print("\nAvailable stocks with prices:")
+        for stock, price in available_stocks.items():
+            print(f"- {stock}: ${price}")
+
+        apple_close = pd.DataFrame(AAPL_data()['close']).rename(columns={'close' :'Apple'})
+        msft_close = pd.DataFrame(MSFT_data()['close']).rename(columns={'close' :'Microsoft'})
+        google_close = pd.DataFrame(GOOGL_data()['close']).rename(columns={'close' :'Google'})
+
+        data = pd.concat([apple_close,msft_close,google_close], axis = 1)
+
+        plt.figure(figsize=(12, 6))
+        ax = sns.lineplot(data=data[['Apple', 'Microsoft', 'Google']])
+        plt.title(f"Stock price development")
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.show()
+
+        return ax
+
+
 
 # Functions to get the latest stock prices for the available stocks (defiend by us): currently Apple, Google and Microsoft
-def AAPL_price():
+def AAPL_data():
     symbol = 'AAPL'
     endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
 
@@ -151,12 +172,16 @@ def AAPL_price():
     data.index = pd.DatetimeIndex(data.index)
     data.rename(columns=lambda s: s[3:], inplace=True)
 
+    return data
+
+def AAPL_price():
+
     # Extract the latest stock price
-    price_AAPL = data['close'].iloc[-1]
+    price_AAPL = AAPL_data()['close'].iloc[-1]
 
     return price_AAPL
 
-def GOOGL_price():
+def GOOGL_data():
     symbol = 'GOOGL'
     endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
 
@@ -175,12 +200,16 @@ def GOOGL_price():
     data.index = pd.DatetimeIndex(data.index)
     data.rename(columns=lambda s: s[3:], inplace=True)
 
+    return data
+
+def GOOGL_price():
     # Extract the latest stock price
-    price_GOOGL = data['close'].iloc[-1]
+    price_GOOGL = GOOGL_data()['close'].iloc[-1]
 
     return price_GOOGL
 
-def MSFT_price():
+
+def MSFT_data():
     symbol = 'MSFT'
     endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
 
@@ -199,8 +228,11 @@ def MSFT_price():
     data.index = pd.DatetimeIndex(data.index)
     data.rename(columns=lambda s: s[3:], inplace=True)
 
+    return data
+
+def MSFT_price():
     # Extract the latest stock price
-    price_MSFT = data['close'].iloc[-1]
+    price_MSFT = MSFT_data()['close'].iloc[-1]
 
     return price_MSFT
 
@@ -372,7 +404,8 @@ def main():
             print("3. Buy Stocks")
             print("4. Portfolio")
             print("5. View stock data")
-            print("6. Exit")
+            print("6. Stock price comparison")
+            print("7. Exit")
 
             choice = input("Enter your choice (1-5): ")
 
@@ -398,6 +431,9 @@ def main():
                     print(f"Current price of {stock_symbol}: ${stock_price}")
 
             elif choice == '6':
+                user.view_stock_overview(available_stocks)
+
+            elif choice == '7':
                 print("Exiting the program. Goodbye!")
                 break
 

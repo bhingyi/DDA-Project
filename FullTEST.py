@@ -1,20 +1,33 @@
+
+# Import libraries
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+#Define class for user profile
 class UserProfile:
+    # Initialize user profile with username, password, and initial cash
     def __init__(self, username, password, initial_cash):
         self.username = username
         self.password = password
         self.cash_balance = initial_cash
         self.portfolio = {}
 
+    # Method to deposit cash into the user's account
     def deposit_cash(self, amount):
         self.cash_balance += amount
         return f"Deposited ${amount}. New cash balance: ${self.cash_balance}"
 
+    # Method to withdraw cash from the user's account
     def withdraw_cash(self, amount):
         if amount > self.cash_balance:
             return "Insufficient funds for withdrawal"
         self.cash_balance -= amount
         return f"Withdrew ${amount}. New cash balance: ${self.cash_balance}"
 
+    # Method to buy stocks
     def buy_stock(self, symbol, quantity, stock_price):
         cost = quantity * stock_price
         if cost > self.cash_balance:
@@ -27,6 +40,7 @@ class UserProfile:
 
         return f"Bought {quantity} shares of {symbol} for ${cost}. New cash balance: ${self.cash_balance}"
 
+    # Method to sell stocks
     def sell_stock(self, symbol, quantity, stock_price):
         if symbol not in self.portfolio or self.portfolio[symbol]['quantity'] < quantity:
             return "Not enough stocks to sell"
@@ -40,6 +54,7 @@ class UserProfile:
 
         return f"Sold {quantity} shares of {symbol} for ${revenue}. New cash balance: ${self.cash_balance}"
 
+    # Method to generate a summary of the user's portfolio
     def portfolio_summary(self):
         summary = []
         for symbol, details in self.portfolio.items():
@@ -49,7 +64,7 @@ class UserProfile:
             summary.append(f"{symbol}: Quantity - {quantity}, Stock Price - ${stock_price}, Total Worth - ${total_worth}")
         return summary
 
-
+# Function to handle user login
 def log_in():
     users = {'Balazs': UserProfile(username='Balazs', password='Welcome123', initial_cash=10000),
              'Anders': UserProfile(username='Anders', password='Welcome123', initial_cash=15000)}
@@ -75,6 +90,7 @@ def log_in():
         return user
 
 
+# Function to handle buying stocks
 def buy_stocks_menu():
     while True:
         # Display available stocks with prices
@@ -113,7 +129,7 @@ def buy_stocks_menu():
         else:
             print("Invalid choice. Please enter 'Y' or 'N'.")
 
-
+# Function to handle selling stocks
 def sell_stocks_menu(user):
     print("\nSell Stocks Menu:")
     print("Select the stock you want to sell (type 'NVM' to go back):")
@@ -141,7 +157,7 @@ def sell_stocks_menu(user):
 
     return None, None, None
 
-
+# Function to handle portfolio-related menu options
 def portfolio_menu(user):
     print("\nPortfolio Menu:")
     print("1. View Owned Stocks")

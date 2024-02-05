@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+api_key = '4H4XGZE8HAY85MW6'
 
 #Define class for user profile
 class UserProfile:
@@ -14,6 +15,7 @@ class UserProfile:
         self.password = password
         self.cash_balance = initial_cash
         self.portfolio = {}
+        self.dataframe = pd.DataFrame.from_dict({'MSFT': 0, 'AAPL': 0, 'GOOGL':0}, orient='index', columns=['Number of stocks'])
 
     # Method to deposit cash into the user's account
     def deposit_cash(self, amount):
@@ -61,8 +63,173 @@ class UserProfile:
             quantity = details['quantity']
             stock_price = details['stock_price']
             total_worth = quantity * stock_price
-            summary.append(f"{symbol}: Quantity - {quantity}, Stock Price - ${stock_price}, Total Worth - ${total_worth}")
+            summary.append(f"{symbol}: Quantity: {quantity}, Stock Price: ${stock_price}, Total Worth: ${total_worth}")
+            self.dataframe[symbol, 'Number of stocks'] = quantity
+            self.dataframe[symbol, 'Value'] = total_worth
         return summary
+
+
+    #Method to generate plot for portfolio overview
+    def visual_summary(self):
+        prices = [MSFT_price(), AAPL_price(), GOOGL_price()]
+        self.dataframe = self.df_summary()
+
+        ax = sns.barplot(x=self.dataframe.index, y='Value', data=self.dataframe, palette=['b', 'g', 'r', 'c'])
+        ax.set_xlabel('Stocks', weight='bold', fontsize=14)
+        ax.set_ylabel('Value', weight='bold', fontsize=14)
+        for p in ax.patches:
+            ax.text(x=p.get_x() + p.get_width() / 2,
+                    y=p.get_height(),
+                    s='${:.2f}'.format(p.get_height()),
+                    ha='center',
+                    weight='bold',
+                    fontsize=14)
+        ax.set_title(f'Value of portfolio at {last_time_stamp('MSFT',api_key)}', weight='bold', fontsize=18)
+        # Show the plot
+        plt.show()
+
+    def view_stock_data(self, available_stocks):
+        print("\nAvailable stocks with prices:")
+        for stock, price in available_stocks.items():
+            print(f"- {stock}: ${price}")
+
+        stock_symbol = input("Enter the stock symbol you want to view data (type 'NVM' to go back): ")
+
+        if stock_symbol.upper() == 'NVM':
+            return None, None, None
+
+        if stock_symbol not in available_stocks:
+            print("Invalid stock symbol.")
+            return None, None, None
+
+        endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stock_symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+        response = requests.get(endpoint)
+
+        if response.status_code != 200:
+            print(f"Could not retrieve data for {stock_symbol}, code: {response.status_code}")
+            return None, None, None
+
+        raw_data = response.json()
+        time_series = raw_data.get('Time Series (1min)')
+
+        if not time_series:
+            print(f"No time series data found for {stock_symbol}")
+            return None, None, None
+
+        data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+        data.index = pd.DatetimeIndex(data.index)
+        data.rename(columns=lambda s: s[3:], inplace=True)
+
+        plt.figure(figsize=(12, 6))
+        sns.lineplot(data=data[['open', 'high', 'low', 'close']])
+        plt.title(f"Stock Data for {stock_symbol}")
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.show()
+
+        return stock_symbol, data['close'].iloc[-1], None
+
+
+# Functions to get the latest stock prices for the available stocks (defiend by us): currently Apple, Google and Microsoft
+def AAPL_price():
+    symbol = 'AAPL'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    if response.status_code != 200:
+        return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+
+    raw_data = response.json()
+    time_series = raw_data.get('Time Series (1min)')
+
+    if not time_series:
+        return f"No time series data found for {symbol}", None
+
+    data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+    data.index = pd.DatetimeIndex(data.index)
+    data.rename(columns=lambda s: s[3:], inplace=True)
+
+    # Extract the latest stock price
+    price_AAPL = data['close'].iloc[-1]
+
+    return price_AAPL
+
+def GOOGL_price():
+    symbol = 'GOOGL'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    if response.status_code != 200:
+        return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+
+    raw_data = response.json()
+    time_series = raw_data.get('Time Series (1min)')
+
+    if not time_series:
+        return f"No time series data found for {symbol}", None
+
+    data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+    data.index = pd.DatetimeIndex(data.index)
+    data.rename(columns=lambda s: s[3:], inplace=True)
+
+    # Extract the latest stock price
+    price_GOOGL = data['close'].iloc[-1]
+
+    return price_GOOGL
+
+def MSFT_price():
+    symbol = 'MSFT'
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    if response.status_code != 200:
+        return f"Could not retrieve data for {symbol}, code: {response.status_code}", None
+
+    raw_data = response.json()
+    time_series = raw_data.get('Time Series (1min)')
+
+    if not time_series:
+        return f"No time series data found for {symbol}", None
+
+    data = pd.DataFrame(time_series).T.apply(pd.to_numeric)
+    data.index = pd.DatetimeIndex(data.index)
+    data.rename(columns=lambda s: s[3:], inplace=True)
+
+    # Extract the latest stock price
+    price_MSFT = data['close'].iloc[-1]
+
+    return price_MSFT
+
+def last_time_stamp(symbol, api_key):
+    endpoint = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={api_key}"
+
+    response = requests.get(endpoint)
+
+    # Since we are retrieving stuff from a web service, it's a good idea to check for the return status code
+    if response.status_code != 200:
+        raise ValueError("Could not retrieve data, code:", response.status_code)
+
+    # The service sends JSON data, we parse that into a Python datastructure
+    raw_data = response.json()
+
+    # Creating data frame
+    data = raw_data['Time Series (1min)']
+    df_data = pd.DataFrame(data).T.apply(pd.to_numeric)
+
+    # Next we parse the index to create a datetimeindex
+    df_data.index = pd.DatetimeIndex(df_data.index)
+
+    # Let's fix the column names by chopping off the first 3 characters
+    df_data.rename(columns=lambda s: s[3:], inplace=True)
+    last_time_stamp = df_data.index[0]
+
+    return last_time_stamp
+
+
 
 # Function to handle user login
 def log_in():
@@ -89,12 +256,12 @@ def log_in():
         print(f"Current cash balance: ${user.cash_balance}")
         return user
 
-
+available_stocks = {'AAPL': AAPL_price(), 'GOOGL': GOOGL_price(), 'MSFT': MSFT_price()}
 # Function to handle buying stocks
 def buy_stocks_menu():
     while True:
         # Display available stocks with prices
-        available_stocks = {'AAPL': 150.50, 'GOOGL': 1200.75, 'MSFT': 300.20}
+        available_stocks = {'AAPL': AAPL_price(), 'GOOGL': GOOGL_price(), 'MSFT': MSFT_price()}
         print("\nAvailable stocks with prices:")
         for stock, price in available_stocks.items():
             print(f"- {stock}: ${price}")
@@ -173,9 +340,10 @@ def portfolio_menu(user):
             print("\nPortfolio Summary:")
             for item in portfolio_summary:
                 print(item)
+
         else:
             print("No stocks in the portfolio.")
-
+        #user.visual_summary()
     elif choice == '2':
         stock_symbol, stock_price, quantity = buy_stocks_menu()
         if stock_symbol and stock_price and quantity:
@@ -203,7 +371,8 @@ def main():
             print("2. Withdraw Cash")
             print("3. Buy Stocks")
             print("4. Portfolio")
-            print("5. Exit")
+            print("5. View stock data")
+            print("6. Exit")
 
             choice = input("Enter your choice (1-5): ")
 
@@ -224,6 +393,11 @@ def main():
                 portfolio_menu(user)
 
             elif choice == '5':
+                stock_symbol, stock_price, _ = user.view_stock_data(available_stocks)
+                if stock_symbol and stock_price:
+                    print(f"Current price of {stock_symbol}: ${stock_price}")
+
+            elif choice == '6':
                 print("Exiting the program. Goodbye!")
                 break
 

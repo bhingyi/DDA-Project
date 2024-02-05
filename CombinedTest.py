@@ -184,7 +184,7 @@ def MSFT_price():
 
 
 def log_in():
-    users = {'Balazs': UserProfile(username='Balazs', password='Welcome123', initial_cash=10000),
+    users = {'Balazs': UserProfile(username='Balazs', password='Welcome123', initial_cash=15000),
              'Anders': UserProfile(username='Anders', password='Welcome123', initial_cash=15000)}
 
     while True:

@@ -83,7 +83,7 @@ class UserProfile:
         prices = [MSFT_price(), AAPL_price(), GOOGL_price()]
         self.dataframe = pd.DataFrame.from_dict(self.portfolio_dict(), orient='index', columns=['Value'])
 
-        ax = sns.barplot(x=self.dataframe.index, y='Value', data=self.dataframe, palette=['b', 'g', 'r'])
+        ax = sns.barplot(x=self.dataframe.index, y='Value', hue=self.dataframe.index, data=self.dataframe, palette=['b', 'g', 'r'])
         ax.set_xlabel('Stocks', weight='bold', fontsize=14)
         ax.set_ylabel('Value', weight='bold', fontsize=14)
         for p in ax.patches:

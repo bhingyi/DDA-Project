@@ -416,7 +416,7 @@ def main():
             print("6. Stock price comparison")
             print("7. Exit")
 
-            choice = input("Enter your choice (1-5): ")
+            choice = input("Enter your choice (1-7): ")
 
             if choice == '1':
                 amount = float(input("Enter the amount to deposit: "))
@@ -447,7 +447,7 @@ def main():
                 break
 
             else:
-                print("Invalid choice. Please enter a number between 1 and 5.")
+                print("Invalid choice. Please enter a number between 1 and 7.")
 
 
 if __name__ == "__main__":
